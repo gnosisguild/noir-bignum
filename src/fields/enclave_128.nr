@@ -2,7 +2,7 @@ use crate::bignum::BigNum;
 use crate::bignum::derive_bignum;
 use crate::params::BigNumParams;
 
-pub global Enclave_PARAMS: BigNumParams<2, 221> = BigNumParams {
+pub global Enclave_128_PARAMS: BigNumParams<2, 221> = BigNumParams {
         has_multiplicative_inverse: false,
         modulus: [
             0x5ac1e026ae35d6b469cdb0084c0001, 0x1000000109800086736c064ad3
@@ -15,5 +15,5 @@ pub global Enclave_PARAMS: BigNumParams<2, 221> = BigNumParams {
         ]
     };
 
-#[derive_bignum(2, 221, quote { Enclave_PARAMS })]
-pub struct Enclave {limbs: [u128; 2]}
+#[derive_bignum(2, 221, quote { Enclave_128_PARAMS })]
+pub struct Enclave_128 {limbs: [u128; 2]}
