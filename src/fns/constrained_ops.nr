@@ -332,6 +332,7 @@ pub(crate) fn validate_gt<let N: u32, let MOD_BITS: u32>(lhs: [u128; N], rhs: [u
     // so we do... p - x - r = 0 and there might be borrow flags
     // a - b = r
     // p + a - b - r = 0
+    // Safety: fix   
     let (underflow, result, borrow_flags) = unsafe { __validate_gt_with_flags(lhs, rhs) };
     validate_in_range::<_, _, MOD_BITS>(result);
     assert(!underflow, "BigNum::validate_gt check fails");
@@ -376,6 +377,7 @@ pub(crate) fn validate_in_field<let N: u32, let MOD_BITS: u32>(
     for i in 0..N {
         p_minus_self[i] = (modulus[i] as Field - val[i] as Field);
     }
+    // Safety: fix   
     let borrow_flags = unsafe { __validate_in_field_compute_borrow_flags(params, val) };
     p_minus_self[0] += (borrow_flags[0] as Field * TWO_POW_120 as Field);
     for i in 1..N - 1 {
@@ -388,6 +390,7 @@ pub(crate) fn validate_in_field<let N: u32, let MOD_BITS: u32>(
 
 // a comparison function. returns true if lhs > rhs and false otherwise
 pub(crate) fn cmp<let N: u32, let MOD_BITS: u32>(lhs: [u128; N], rhs: [u128; N]) -> Ordering {
+    // Safety: fix   
     let (underflow, result, borrow_flags) = unsafe { __validate_gt_with_flags(lhs, rhs) };
     // if underflow is true, swap lhs and rhs
     let (lhs, rhs) = if underflow { (rhs, lhs) } else { (lhs, rhs) };
@@ -412,7 +415,7 @@ pub(crate) fn neg<let N: u32, let MOD_BITS: u32>(
             __neg(params.modulus, val)
         }
     } else {
-        // so we do... p - x - r = 0 and there might be borrow flags
+        // Safety: fix   
         let (result, borrow_flags) = unsafe { __neg_with_flags(params.modulus, val) };
         validate_in_range::<_, _, MOD_BITS>(result);
         let modulus = params.modulus;
@@ -443,7 +446,7 @@ pub(crate) fn add<let N: u32, let MOD_BITS: u32>(
             __add(params.modulus, lhs, rhs)
         }
     } else {
-        // so we do... p - x - r = 0 and there might be borrow flags
+        // Safety: fix   
         let (result, carry_flags, borrow_flags, overflow_modulus) =
             unsafe { __add_with_flags(params.modulus, lhs, rhs) };
         validate_in_range::<_, _, MOD_BITS>(result);
@@ -493,6 +496,7 @@ pub(crate) fn sub<let N: u32, let MOD_BITS: u32>(
         // so we do... p - x - r = 0 and there might be borrow flags
         // a - b = r
         // p + a - b - r = 0
+        // Safety: fix   
         let (result, carry_flags, borrow_flags, underflow) =
             unsafe { __sub_with_flags(params.modulus, lhs, rhs) };
 
@@ -541,6 +545,7 @@ pub(crate) fn mul<let N: u32, let MOD_BITS: u32>(
     lhs: [u128; N],
     rhs: [u128; N],
 ) -> [u128; N] {
+    // Safety: fix   
     let result = unsafe { __mul::<_, MOD_BITS>(params, lhs, rhs) };
     if !std::runtime::is_unconstrained() {
         evaluate_quadratic_expression(
@@ -566,6 +571,7 @@ pub(crate) fn div<let N: u32, let MOD_BITS: u32>(
         params.has_multiplicative_inverse,
         "BigNum has no multiplicative inverse. Use udiv for unsigned integer division",
     );
+    // Safety: fix   
     let result = unsafe { __div::<_, MOD_BITS>(params, lhs, rhs) };
     if !std::runtime::is_unconstrained() {
         evaluate_quadratic_expression(
@@ -593,6 +599,7 @@ pub(crate) fn udiv_mod<let N: u32, let MOD_BITS: u32>(
     numerator: [u128; N],
     divisor: [u128; N],
 ) -> ([u128; N], [u128; N]) {
+    // Safety: fix   
     let (quotient, remainder) = unsafe { __udiv_mod(numerator, divisor) };
     if !std::runtime::is_unconstrained() {
         // self / divisor = quotient rounded

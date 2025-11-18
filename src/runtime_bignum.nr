@@ -116,6 +116,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     // UNCONSTRAINED! (Hence `__` prefix).
     pub fn __neg(self) -> Self {
         let params = self.params;
+        // Safety: fix   
         let limbs = unsafe { __neg(params.modulus, self.limbs) };
         Self { params, limbs }
     }
@@ -124,6 +125,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __add(self, other: Self) -> Self {
         let params = self.params;
         assert(params == other.params);
+        // Safety: fix   
         let limbs = unsafe { __add(params.modulus, self.limbs, other.limbs) };
         Self { params, limbs }
     }
@@ -132,6 +134,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __sub(self, other: Self) -> Self {
         let params = self.params;
         assert(params == other.params);
+        // Safety: fix   
         let limbs = unsafe { __sub(params.modulus, self.limbs, other.limbs) };
         Self { params, limbs }
     }
@@ -140,6 +143,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __mul(self, other: Self) -> Self {
         let params = self.params;
         assert(params == other.params);
+        // Safety: fix
         let limbs = unsafe { __mul::<_, MOD_BITS>(params, self.limbs, other.limbs) };
         Self { params, limbs }
     }
@@ -148,6 +152,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __div(self, divisor: Self) -> Self {
         let params = self.params;
         assert(params == divisor.params);
+        // Safety: fix
         let limbs = unsafe { __div::<_, MOD_BITS>(params, self.limbs, divisor.limbs) };
         Self { params, limbs }
     }
@@ -156,6 +161,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __udiv_mod(self, divisor: Self) -> (Self, Self) {
         let params = self.params;
         assert(params == divisor.params);
+        // Safety: fix
         let (q, r) = unsafe { __udiv_mod(self.limbs, divisor.limbs) };
         (Self { limbs: q, params }, Self { limbs: r, params })
     }
@@ -164,6 +170,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __invmod(self) -> Self {
         let params = self.params;
         assert(params.has_multiplicative_inverse);
+        // Safety: fix
         let limbs = unsafe { __invmod::<_, MOD_BITS>(params, self.limbs) };
         Self { limbs, params }
     }
@@ -172,6 +179,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     pub fn __pow(self, exponent: Self) -> Self {
         let params = self.params;
         assert(params == exponent.params);
+        // Safety: fix
         let limbs = unsafe { __pow::<_, MOD_BITS>(params, self.limbs, exponent.limbs) };
         Self { limbs, params }
     }
@@ -179,6 +187,7 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     // UNCONSTRAINED! (Hence `__` prefix).
     pub fn __tonelli_shanks_sqrt(self) -> std::option::Option<Self> {
         let params = self.params;
+        // Safety: fix
         let maybe_limbs = unsafe { __tonelli_shanks_sqrt(params, self.limbs) };
         maybe_limbs.map(|limbs| Self { limbs, params })
     }
@@ -295,6 +304,7 @@ pub fn __compute_quadratic_expression<let N: u32, let MOD_BITS: u32, let LHS_N: 
     linear_terms: [RuntimeBigNum<N, MOD_BITS>; ADD_N],
     linear_flags: [bool; ADD_N],
 ) -> (RuntimeBigNum<N, MOD_BITS>, RuntimeBigNum<N, MOD_BITS>) {
+    // Safety: fix
     let (q_limbs, r_limbs) = unsafe {
         crate::fns::expressions::compute_quadratic_expression::<_, MOD_BITS, _, _, _, _>(
             params,
@@ -335,6 +345,7 @@ pub fn __batch_invert<let N: u32, let MOD_BITS: u32, let M: u32>(
 ) -> [RuntimeBigNum<N, MOD_BITS>; M] {
     let params = x[0].params;
     assert(params.has_multiplicative_inverse);
+    // Safety: fix
     let all_limbs = unsafe {
         crate::fns::unconstrained_ops::batch_invert::<_, MOD_BITS, _>(
             params,

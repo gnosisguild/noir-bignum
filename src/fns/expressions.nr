@@ -254,6 +254,7 @@ pub(crate) fn evaluate_quadratic_expression<let N: u32, let MOD_BITS: u32, let L
     linear_flags: [bool; ADD_N],
 ) {
     // use an unconstrained function to compute the value of the quotient
+    // Safety: fix   
     let (quotient, _, borrow_flags): ([u128; N], [u128; N], [Field; 2 * N - 2]) = unsafe {
         compute_quadratic_expression_with_borrow_flags::<_, MOD_BITS, _, _, _, _>(
             params,
