@@ -53,3 +53,4 @@ pub use fields::vestaFq::Vesta_Fq;
 pub use fields::vestaFr::Vesta_Fr;
 pub use fields::enclave_100::Enclave_100;
 pub use fields::enclave_128::Enclave_128;
+pub use fields::enclave_100_pt_mod::Enclave_100_Pt_Mod;
