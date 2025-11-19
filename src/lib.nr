@@ -51,6 +51,7 @@ pub use fields::U768::U768;
 pub use fields::U8192::U8192;
 pub use fields::vestaFq::Vesta_Fq;
 pub use fields::vestaFr::Vesta_Fr;
-pub use fields::enclave_100::Enclave_100;
+pub use fields::enclave_bfv_100::Enclave_Bfv_100;
+pub use fields::enclave_trbfv_100::Enclave_TrBfv_100;
 pub use fields::enclave_128::Enclave_128;
 pub use fields::enclave_100_pt_mod::Enclave_100_Pt_Mod;
