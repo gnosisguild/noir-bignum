@@ -1047,6 +1047,7 @@ fn test_SecP224r1_mul_regression() {
     let mut x: SecP224r1 =
         SecP224r1 { limbs: [0x03c1d356c21122343280d6115c1d21, 0xb70e0cbd6bb4bf7f321390b94a] };
     let res = x * x;
+    // Safety: fix
     let expected = unsafe { SecP224r1::__mul(x, x) };
     res.validate_in_field();
     expected.validate_in_field();

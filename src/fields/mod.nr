@@ -27,3 +27,7 @@ pub mod U1024;
 pub mod U2048;
 pub mod U4096;
 pub mod U8192;
+pub mod enclave_bfv_512;
+pub mod enclave_bfv_8192;
+pub mod enclave_trbfv_512;
+pub mod enclave_trbfv_8192;
