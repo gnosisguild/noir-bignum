@@ -36,23 +36,30 @@ pub trait BigNum: Neg + Add + Sub + Mul + Div + Eq {
     unconstrained fn __add(self, other: Self) -> Self;
     unconstrained fn __sub(self, other: Self) -> Self;
     unconstrained fn __mul(self, other: Self) -> Self;
+    unconstrained fn __sqr(self) -> Self;
     unconstrained fn __div(self, other: Self) -> Self;
     unconstrained fn __udiv_mod(self, divisor: Self) -> (Self, Self);
     unconstrained fn __invmod(self) -> Self;
     unconstrained fn __pow(self, exponent: Self) -> Self;
 
     unconstrained fn __tonelli_shanks_sqrt(self) -> std::option::Option<Self>;
+    unconstrained fn __sqrt(self) -> std::option::Option<Self>;
 
     fn assert_is_not_equal(self: Self, other: Self);
 
     fn validate_in_range(self);
     fn validate_in_field(self);
 
+    fn sqr(self) -> Self;
+
     fn udiv_mod(self, divisor: Self) -> (Self, Self);
     fn udiv(self, divisor: Self) -> Self;
     fn umod(self, divisor: Self) -> Self;
 
     fn is_zero(self) -> bool;
+    fn is_zero_integer(self) -> bool;
+    fn assert_is_not_zero(self);
+    fn assert_is_not_zero_integer(self);
 }
 
 // we need macros that implement the BigNum, Default, From, Neg, Add, Sub, Mul, Div, Eq, Ord traits for each bignum type
@@ -169,6 +176,11 @@ pub comptime fn derive_bignum(
                 Self {limbs: $unconstrained_ops::__mul(params, self.get_limbs(), other.get_limbs())}
             }
 
+            unconstrained fn __sqr(self: Self) -> Self {
+                let params = Self::params();
+                Self {limbs: $unconstrained_ops::__sqr(params, self.get_limbs()) }
+            }
+
             unconstrained fn __div(self: Self, divisor: Self) -> Self {
                 let params = Self::params();
                 Self {limbs: $unconstrained_ops::__div(params, self.get_limbs(), divisor.get_limbs())}
@@ -190,12 +202,18 @@ pub comptime fn derive_bignum(
                 Self {limbs: $unconstrained_ops::__pow(params, self.get_limbs(), exponent.get_limbs())}
             }
 
+            #[deprecated("use __sqrt")]
             unconstrained fn __tonelli_shanks_sqrt(self: Self) -> std::option::Option<Self> {
                 let params = Self::params();
-                let maybe_limbs = $unconstrained_ops::__tonelli_shanks_sqrt(params, self.get_limbs());
+                let maybe_limbs = $unconstrained_ops::__sqrt(params, self.get_limbs());
                 maybe_limbs.map(|limbs| Self {limbs: limbs})
             }
 
+            unconstrained fn __sqrt(self: Self) -> std::option::Option<Self> {
+                let params = Self::params();
+                let maybe_limbs = $unconstrained_ops::__sqrt(params, self.get_limbs());
+                maybe_limbs.map(|limbs| Self {limbs: limbs })
+            }
 
             fn assert_is_not_equal(self: Self, other: Self) {
                 let params = Self::params();
@@ -215,24 +233,42 @@ pub comptime fn derive_bignum(
                 $constrained_ops::validate_in_range::<_, _, $MOD_BITS>(self.get_limbs());
             }
 
-            fn udiv_mod(self: Self, divisor: Self) -> (Self, Self) {
+            fn sqr(self: Self) -> Self {
                 let params = Self::params();
-                let (q, r) = $constrained_ops::udiv_mod::<_, $MOD_BITS>(params, self.get_limbs(), divisor.get_limbs());
+                Self { limbs: $constrained_ops::sqr::<$N, $MOD_BITS>(params, self.get_limbs()) }
+            }
+
+            fn udiv_mod(self: Self, divisor: Self) -> (Self, Self) {
+                let (q, r) = $constrained_ops::udiv_mod::<$N, $MOD_BITS>(self.get_limbs(), divisor.get_limbs());
                 (Self {limbs: q}, Self {limbs: r})
             }
 
             fn udiv(self: Self, divisor: Self) -> Self {
                 let params = Self::params();
-                Self {limbs: $constrained_ops::udiv::<_, $MOD_BITS>(params, self.get_limbs(), divisor.get_limbs())}
+                Self {limbs: $constrained_ops::udiv::<$N, $MOD_BITS>(self.get_limbs(), divisor.get_limbs())}
             }
 
             fn umod(self: Self, divisor: Self) -> Self {
                 let params = Self::params();
-                Self {limbs: $constrained_ops::umod::<_, $MOD_BITS>(params, self.get_limbs(), divisor.get_limbs())}
+                Self {limbs: $constrained_ops::umod::<$N, $MOD_BITS>(self.get_limbs(), divisor.get_limbs())}
             }
 
             fn is_zero(self: Self) -> bool {
-                $constrained_ops::is_zero::<_, $MOD_BITS>(self.get_limbs())
+                let params = Self::params();
+                $constrained_ops::is_zero::<$N, $MOD_BITS>(params, self.get_limbs())
+            }
+
+            fn is_zero_integer(self: Self) -> bool {
+                $constrained_ops::is_zero_integer(self.get_limbs())
+            }
+
+            fn assert_is_not_zero(self: Self) {
+                let params = Self::params();
+                $constrained_ops::assert_is_not_zero::<$N, $MOD_BITS>(params, self.get_limbs());
+            }
+
+            fn assert_is_not_zero_integer(self: Self) {
+                $constrained_ops::assert_is_not_zero_integer(self.get_limbs());
             }
         }
 

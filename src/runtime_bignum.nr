@@ -3,13 +3,14 @@ use crate::utils::map::map;
 
 use crate::fns::{
     constrained_ops::{
-        add, assert_is_not_equal, cmp, derive_from_seed, div, eq, is_zero, mul, neg, sub, udiv,
-        udiv_mod, umod, validate_in_field, validate_in_range,
+        add, assert_is_not_equal, assert_is_not_zero, assert_is_not_zero_integer, cmp,
+        derive_from_seed, div, eq, is_zero, is_zero_integer, mul, neg, sqr, sub, udiv, udiv_mod,
+        umod, validate_in_field, validate_in_range,
     },
     serialization::{from_be_bytes, from_le_bytes, to_be_bytes, to_le_bytes},
     unconstrained_ops::{
-        __add, __derive_from_seed, __div, __eq, __invmod, __is_zero, __mul, __neg, __pow, __sub,
-        __tonelli_shanks_sqrt, __udiv_mod,
+        __add, __derive_from_seed, __div, __eq, __invmod, __is_zero, __mul, __neg, __pow, __sqr,
+        __sqrt, __sub, __udiv_mod,
     },
 };
 use std::{cmp::Ordering, ops::Neg};
@@ -149,6 +150,13 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     }
 
     // UNCONSTRAINED! (Hence `__` prefix).
+    pub fn __sqr(self) -> Self {
+        let params = self.params;
+        let limbs = unsafe { __sqr::<_, MOD_BITS>(params, self.limbs) };
+        Self { params: params, limbs: limbs }
+    }
+
+    // UNCONSTRAINED! (Hence `__` prefix).
     pub fn __div(self, divisor: Self) -> Self {
         let params = self.params;
         assert(params == divisor.params);
@@ -185,10 +193,17 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
     }
 
     // UNCONSTRAINED! (Hence `__` prefix).
+    #[deprecated("use __sqrt")]
     pub fn __tonelli_shanks_sqrt(self) -> std::option::Option<Self> {
         let params = self.params;
-        // Safety: fix
-        let maybe_limbs = unsafe { __tonelli_shanks_sqrt(params, self.limbs) };
+        let maybe_limbs = unsafe { __sqrt(params, self.limbs) };
+        maybe_limbs.map(|limbs| Self { limbs, params })
+    }
+
+    // UNCONSTRAINED! (Hence `__` prefix).
+    pub fn __sqrt(self) -> std::option::Option<Self> {
+        let params = self.params;
+        let maybe_limbs = unsafe { __sqrt(params, self.limbs) };
         maybe_limbs.map(|limbs| Self { limbs, params })
     }
 
@@ -207,27 +222,46 @@ impl<let N: u32, let MOD_BITS: u32> RuntimeBigNum<N, MOD_BITS> {
         assert_is_not_equal(params, self.limbs, other.limbs);
     }
 
+    pub fn sqr(self) -> Self {
+        let params = self.params;
+        Self { limbs: sqr(params, self.limbs), params: params }
+    }
+
     pub fn udiv_mod(self, divisor: Self) -> (Self, Self) {
         let params = self.params;
         assert(params == divisor.params);
-        let (q, r) = udiv_mod::<_, MOD_BITS>(params, self.limbs, divisor.limbs);
+        let (q, r) = udiv_mod::<N, MOD_BITS>(self.limbs, divisor.limbs);
         (Self { limbs: q, params }, Self { limbs: r, params })
     }
 
     pub fn udiv(self, divisor: Self) -> Self {
         let params = self.params;
         assert(params == divisor.params);
-        Self { limbs: udiv::<_, MOD_BITS>(params, self.limbs, divisor.limbs), params }
+        Self { limbs: udiv::<N, MOD_BITS>(self.limbs, divisor.limbs), params }
     }
 
     pub fn umod(self, divisor: Self) -> Self {
         let params = self.params;
         assert(params == divisor.params);
-        Self { limbs: umod::<_, MOD_BITS>(params, self.limbs, divisor.limbs), params }
+        Self { limbs: umod::<N, MOD_BITS>(self.limbs, divisor.limbs), params }
     }
 
     pub fn is_zero(self) -> bool {
-        is_zero::<N, MOD_BITS>(self.limbs)
+        let params = self.params;
+        is_zero(params, self.limbs)
+    }
+
+    pub fn is_zero_integer(self: Self) -> bool {
+        is_zero_integer(self.limbs)
+    }
+
+    pub fn assert_is_not_zero(self: Self) {
+        let params = self.params;
+        assert_is_not_zero::<N, MOD_BITS>(params, self.limbs);
+    }
+
+    pub fn assert_is_not_zero_integer(self: Self) {
+        assert_is_not_zero_integer(self.limbs);
     }
 }
 
